@@ -1,0 +1,63 @@
+version: '3'
+services:
+  
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - soc-elk
+  
+  kibana:
+    build:
+      dockerfile: ./kibana/Dockerfile
+      context: .
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - 5601:5601
+    networks: 
+      - soc-elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.4.0
+    volumes:
+      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/pipeline.conf:/usr/share/logstash/pipeline/pipeline.conf
+    ports:
+      - 5000:5000
+      - 9600:9600
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - soc-elk
+  
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.4.0
+    environment:
+      - setup.kibana.host=kibana:5601
+      - output.elasticsearch.hosts=["elasticsearch:9200"] 
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./filebeat/logstash-tutorial.log:/usr/share/filebeat/logstash-tutorial.log
+    networks:
+      - soc-elk
+
+  elastalert:
+    image: bitsensor/elastalert:3.0.0-beta.0
+    volumes:
+      - ./elastalert/rules/:/opt/elastalert/rules/
+      - ./elastalert/elastalert.yml:/opt/elastalert/config.yaml
+      - ./elastalert/config.json:/opt/elastalert-server/config/config.json
+    ports:
+      - 3030:3030
+    networks: 
+      - soc-elk    
+
+networks: 
+  soc-elk:
+    driver: bridge
