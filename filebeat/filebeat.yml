@@ -1,6 +1,6 @@
 filebeat.inputs:
 - type: log
   paths:
-    - /usr/share/filebeat/logstash-tutorial.log 
+    - /usr/share/filebeat/server.log
 output.logstash:
   hosts: ["logstash:5044"]

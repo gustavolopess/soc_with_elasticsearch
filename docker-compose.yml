@@ -43,8 +43,19 @@ services:
       - output.elasticsearch.hosts=["elasticsearch:9200"] 
     volumes:
       - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
-      - ./filebeat/logstash-tutorial.log:/usr/share/filebeat/logstash-tutorial.log
+      - ./httpserver/server.log:/usr/share/filebeat/server.log
     networks:
+      - soc-elk
+
+  simplehttpserver:
+    image: python:3.7-alpine3.10
+    ports:
+      - 8000:8000
+    volumes:
+      - ./httpserver/server.py:/server.py
+      - ./httpserver/server.log:/server.log
+    entrypoint: python server.py
+    networks: 
       - soc-elk
 
   elastalert:
