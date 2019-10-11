@@ -1,0 +1,33 @@
+# From example_rules/example_frequency.yaml
+es_host: elasticsearch
+es_port: 9200
+name: SQL Injection Detection
+type: frequency
+index: logstash-*
+num_events: 1
+timeframe:
+    hours: 1
+query:
+- regexp:
+    url:
+        - value: "(?i).*(SELECT|UPDATE).*"
+        - flags: "ALL"
+
+alert:
+- "telegram"
+telegram_bot_token: 751572914:AAFzEzcMEwik4wozXwY4IT7h3MJ_v6-sU3c
+telegram_room_id: "-348308361"
+
+alert_text: |-
+  SQL Injection on {} is detected.
+  The attacker looks like:
+  IP: {}
+  URL Path: {}
+  Method: {}
+  Code: {}
+alert_text_args:
+  - host.name
+  - source
+  - url
+  - http_method
+  - status_code
